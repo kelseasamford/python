@@ -1,0 +1,44 @@
+import os
+import pandas as pd
+
+# Define source and destination directories
+source_dir = r"C:\Users\kizor\Desktop\convert_stats\input_folder"  # Folder with .tsv files
+output_dir = r"C:\Users\kizor\Desktop\convert_stats\output_folder"  # Folder to store converted CSVs
+
+# Create output directory if it doesn't exist
+os.makedirs(output_dir, exist_ok=True)
+
+# Function to convert .tsv to .csv, handle bad rows
+def convert_tsv_to_csv(file_path, output_path):
+    try:
+        # Read .tsv file with tab separator, skipping bad lines
+        df = pd.read_csv(file_path, sep='\t', on_bad_lines='skip')
+
+        # Normalize the columns by ensuring all rows have the same number of columns
+        max_columns = df.shape[1]  # Get the maximum number of columns in the DataFrame
+        for index, row in df.iterrows():
+            if len(row) < max_columns:  # If row has fewer columns
+                row = row.tolist() + [None] * (max_columns - len(row))  # Fill with None
+                df.iloc[index] = row
+            elif len(row) > max_columns:  # If row has more columns
+                df.iloc[index] = row[:max_columns]  # Truncate to max columns
+
+        # Write the normalized DataFrame to a .csv file
+        df.to_csv(output_path, index=False)
+        print(f"Converted: {file_path} -> {output_path}")
+        return True
+    except Exception as e:
+        print(f"Failed to convert {file_path}: {e}")
+        return False
+
+# Process all .tsv files in the source directory
+for filename in os.listdir(source_dir):
+    file_path = os.path.join(source_dir, filename)
+    
+    # Only process .tsv files
+    if os.path.isfile(file_path) and filename.lower().endswith('.tsv'):
+        base, _ = os.path.splitext(filename)  # Remove the .tsv extension
+        output_file = os.path.join(output_dir, base + '.csv')  # Define the output .csv file path
+        convert_tsv_to_csv(file_path, output_file)
+
+print("COMPLETE. All .tsv files processed and converted to .csv.")
