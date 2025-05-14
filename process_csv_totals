@@ -1,0 +1,58 @@
+import pandas as pd
+import os
+
+# Folder path for the CSV files
+base_dir = r"SOURCE DIRECTORY"
+
+# File paths
+files = {
+    "IR_M1": os.path.join(base_dir, "IR_M1_combined.csv"),
+    "TR_B1": os.path.join(base_dir, "TR_B1_combined.csv"),
+    "TR_J1": os.path.join(base_dir, "TR_J1_combined.csv"),
+}
+
+# Process IR_M1: Total all numbers in column 'Reporting_Period_Total'
+def process_IR_M1(file_path):
+    try:
+        df = pd.read_csv(file_path)
+        df['Reporting_Period_Total'] = pd.to_numeric(df['Reporting_Period_Total'], errors='coerce')
+        total = df['Reporting_Period_Total'].sum()
+        print(f"Total for IR_M1 (Reporting_Period_Total): {total}")
+    except Exception as e:
+        print(f"Failed to process IR_M1: {e}")
+
+# Process TR_B1: Total where Metric_Type == 'Unique_Title_Requests'
+def process_TR_B1(file_path):
+    try:
+        df = pd.read_csv(file_path)
+        df['Reporting_Period_Total'] = pd.to_numeric(df['Reporting_Period_Total'], errors='coerce')
+        filtered_df = df[df['Metric_Type'] == 'Unique_Title_Requests']
+        total = filtered_df['Reporting_Period_Total'].sum()
+        print(f"Total for TR_B1 (Metric_Type = 'Unique_Title_Requests'): {total}")
+    except Exception as e:
+        print(f"Failed to process TR_B1: {e}")
+
+# Process TR_J1: Total where Metric_Type == 'Unique_Item_Requests'
+def process_TR_J1(file_path):
+    try:
+        df = pd.read_csv(file_path)
+        df['Reporting_Period_Total'] = pd.to_numeric(df['Reporting_Period_Total'], errors='coerce')
+        filtered_df = df[df['Metric_Type'] == 'Unique_Item_Requests']
+        total = filtered_df['Reporting_Period_Total'].sum()
+        print(f"Total for TR_J1 (Metric_Type = 'Unique_Item_Requests'): {total}")
+    except Exception as e:
+        print(f"Failed to process TR_J1: {e}")
+
+# Main function
+def main():
+    print("Processing IR_M1...")
+    process_IR_M1(files["IR_M1"])
+
+    print("\nProcessing TR_B1...")
+    process_TR_B1(files["TR_B1"])
+
+    print("\nProcessing TR_J1...")
+    process_TR_J1(files["TR_J1"])
+
+if __name__ == "__main__":
+    main()
