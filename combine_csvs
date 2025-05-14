@@ -1,0 +1,58 @@
+import os
+import pandas as pd
+
+# Folder paths
+base_dir = r"SOURCE DIRECTORY"
+folders = ["IR_M1", "TR_B1", "TR_J1"]
+
+# Process each folder
+for folder in folders:
+    folder_path = os.path.join(base_dir, folder)
+    combined_data = []
+    header = None
+
+    print(f"\nProcessing folder: {folder}")
+
+    # Process each CSV file in the folder
+    for filename in os.listdir(folder_path):
+        if filename.lower().endswith('.csv'):
+            file_path = os.path.join(folder_path, filename)
+
+            try:
+                # Read the file to check for header and data
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    
+                    # Skip files that are too short to have a header
+                    if len(lines) < 14:
+                        print(f"Skipped (file too short for header): {file_path}")
+                        continue
+                    
+                    # If header is not already set, extract it from line 14 (index 13)
+                    if header is None:
+                        header_line = lines[13].strip()
+                        header = [col.strip() for col in header_line.split(',')]
+                        print(f"Header set from file: {file_path}")
+
+                # Read data starting from line 15 (skip first 14 lines)
+                df_data = pd.read_csv(file_path, header=None, skiprows=14, names=header)
+
+                if df_data.empty:
+                    print(f"Skipped (no data rows after header): {file_path}")
+                    continue
+
+                combined_data.append(df_data)
+
+            except Exception as e:
+                print(f"Failed to process {file_path}: {e}")
+
+    # Save combined CSV if data exists
+    if combined_data:
+        combined_df = pd.concat(combined_data, ignore_index=True)
+        output_file = os.path.join(base_dir, f"{folder}_combined.csv")
+        combined_df.to_csv(output_file, index=False)
+        print(f"Combined file created: {output_file}")
+    else:
+        print(f"No valid data found to combine in folder: {folder}")
+
+print("\nAll folders processed successfully.")
